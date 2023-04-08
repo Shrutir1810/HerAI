@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Room Loading Problem</title>
+  <link rel="stylesheet" href="design.css">
+</head>
+<body>
+  <form>
+    <label for="capacity">Room Capacity:</label>
+    <input type="number" id="capacity" name="capacity">
+    <br>
+    <label for="items">Item Names and Weights (comma-separated):</label>
+    <input type="text" id="items" name="items">
+    <br>
+    <button type="button" onclick="packContainer()">Pack Room</button>
+  </form>
+  <div id="result"></div>
+</body>
+<script>
+function packContainer() {
+  const capacity = document.getElementById("capacity").value;
+  const itemsInput = document.getElementById("items").value.trim().split(",");
+  const n = itemsInput.length;
+
+  // Parse items input
+  const items = {};
+  for (let i = 0; i < n; i++) {
+    const [name, weight] = itemsInput[i].trim().split(" ");
+    items[name] = parseInt(weight);
+  }
+
+  // Initialize DP table
+  const dp = [];
+  for (let i = 0; i <= n; i++) {
+    dp.push([]);
+    for (let j = 0; j <= capacity; j++) {
+      dp[i].push(0);
+    }
+  }
+
+  // Solve subproblems
+  for (let i = 1; i <= n; i++) {
+    const itemName = Object.keys(items)[i-1];
+    const itemWeight = items[itemName];
+    for (let j = 1; j <= capacity; j++) {
+      if (itemWeight <= j) {
+        dp[i][j] = Math.max(dp[i-1][j], dp[i-1][j-itemWeight] + itemWeight);
+      } else {
+        dp[i][j] = dp[i-1][j];
+      }
+    }
+  }
+
+  // Backtrack to get solution
+  const packedItems = {};
+  let i = n;
+  let j = capacity;
+  while (i > 0 && j > 0) {
+    const itemName = Object.keys(items)[i-1];
+    const itemWeight = items[itemName];
+    if (dp[i][j] !== dp[i-1][j]) {
+      packedItems[itemName] = itemWeight;
+      j -= itemWeight;
+    }
+    i--;
+  }
+
+  // Display result
+  let resultHtml = "Items packed:<br>";
+  for (const itemName in packedItems) {
+    resultHtml += `${itemName}: ${packedItems[itemName]}<br>`;
+  }
+  document.getElementById("result").innerHTML = resultHtml;
+}
+</script>
+<a href="tester.html"><button>Create your designs</button></a>
+</html>
+
